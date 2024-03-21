@@ -2,8 +2,10 @@ import pprint
 from operator import itemgetter
 from datetime import datetime
 
-OPTIONS = ['TASKS', 'SCHEDULE', 'EXIT']
+OPTIONS = ['TASKS', 'FUTURE TASKS', 'SCHEDULE', 'EXIT']
 TASKS_OPTIONS = ['See the list of the tasks', 'Add the task', 'Remove the tasks', 'Go back']
+FUTURE_TASKS_OPTIONS = ['See the list of the future tasks', 'Add the future task', 'Remove the future tasks', 
+                        'Move the future tasks to daily tasks', 'Go back']
 SCHEDULE_OPTIONS = ['See upcoming events', 'Add the event', 'Remove the event', 'See the uni timetable',
                     'Edit the uni timetable', 'Go back']
 
@@ -17,42 +19,59 @@ def main_options():
     choice = int(input())
 
     if choice == len(OPTIONS):
-        # 'EXIT' should be always the last option in OPTIONS
+        # 'EXIT' should be the last option in OPTIONS
         exit()
     else:
         show_options(choice)
 
 
-def show_options(t_or_s):
-    # t_or_s like task_or_schedule (1 for TASKS and 2 for SCHEDULE)
+def show_options(t_f_s):
+    # t_f_s means 'task or future or schedule' (1 for TASKS, 2 for FUTURE and 3 for SCHEDULE)
     print()
     print(' -- What would you like to do? -- ')
 
-    if t_or_s == 1:
+    if t_f_s == 1:
         for i, option in enumerate(TASKS_OPTIONS, start=1):
             print(f'{i}. {option}')
         choice = int(input())
 
         if choice == len(TASKS_OPTIONS):
-            # 'go back' option should be always the last option to choose from
+            # 'go back' option should be the last option in TASKS_OPTIONS
             main_options()
-        else:
+        elif choice in [1,2,3]:
             for option in SWITCH:
                 if option == choice:
-                    SWITCH[option](t_or_s)
+                    SWITCH[option](t_f_s)
 
-    elif t_or_s == 2:
+    elif t_f_s == 2:
+        for i, option in enumerate(FUTURE_TASKS_OPTIONS, start=1):
+            print(f'{i}. {option}')
+        choice = int(input())
+
+        if choice == len(FUTURE_TASKS_OPTIONS):
+            # 'go back' option should be the last option in FUTURE_TASKS_OPTIONS
+            main_options()
+        elif choice in [1,2,3]:
+            for option in SWITCH:
+                if option == choice:
+                    SWITCH[option](t_f_s)
+        elif choice == 4: future_to_daily()
+
+
+    elif t_f_s == 3:
         for i, option in enumerate(SCHEDULE_OPTIONS, start=1):
             print(f'{i}. {option}')
         choice = int(input())
 
         if choice == len(SCHEDULE_OPTIONS):
-            # 'go back' option should be always the last option to choose from
+            # 'go back' option should be the last option in SCHEDULE_OPTIONS
             main_options()
-        else:
+        elif choice in [1,2,3]:
             for option in SWITCH:
                 if option == choice:
-                    SWITCH[option](t_or_s)
+                    SWITCH[option](t_f_s)
+        elif choice == 4: show_timetable()
+        elif choice == 5: edit_timetable()
 
 
 def see_info(option):
@@ -65,6 +84,12 @@ def see_info(option):
                 print(f'{i}. {line.strip()}')
 
     elif option == 2:
+        print(f' -- Here is the list of your future tasks -- ')
+        with open('futureTasksFile.txt', 'r', encoding='utf-8') as file:
+            for i, line in enumerate(file, start=1):
+                print(f'{i}. {line.strip()}')
+
+    elif option == 3:
         print(' -- Here is the list of your upcoming events -- ')
         with open('eventsFile.txt', 'r', encoding='utf-8') as file:
             for line in file:
@@ -76,14 +101,22 @@ def see_info(option):
 
 def add_info(option):
 
+    print()
     if option == 1:
         print(' * What task do you want to add? * ')
         task_to_add = input()
         with open('tasksFile.txt', 'a') as file:
             file.write(task_to_add + '\n')
         print(' * Your task has been added successfully * ')
-
+    
     elif option == 2:
+        print(' * What future task do you want to add? * ')
+        task_to_add = input()
+        with open('futureTasksFile.txt', 'a') as file:
+            file.write(task_to_add + '\n')
+        print(' * Your future task has been added successfully * ')
+
+    elif option == 3:
         print(' * What event do you want to add? * ')
         print(' * Format: name-date-time-place * ')
         event_to_add = input()
@@ -91,14 +124,14 @@ def add_info(option):
             file.write(event_to_add + '\n')
         print(' * Your event has been added successfully * ')
 
-    elif option == 3:
+    elif option == 4:
         print(' * What event do you want to add? * ')
         print(' * Format: day-hour-name * ')
         event_to_add = input()
         with open('calendarFile.txt', 'a') as file:
             file.write(event_to_add + '\n')
         print(' * Your event has been added successfully * ')
-        edit_timetable(2)
+        edit_timetable
 
     show_options(option)
 
@@ -107,7 +140,9 @@ def remove_info(option):
 
     if option == 1:
         print(' * Which tasks do you want to remove? * ')
+        # user should only write nums of the tasks they want to remove
         tasks_to_remove = sorted((input()).split(' '))
+        # this is an array with sorted nums of the tasks to remove
 
         with open('tasksFile.txt', 'r', encoding='utf-8') as file:
             lines = file.readlines()
@@ -125,6 +160,28 @@ def remove_info(option):
         print(' * Your tasks have been removed successfully * ')
 
     elif option == 2:
+        print(' * Which future tasks do you want to remove? * ')
+        # user should only write nums of the tasks they want to remove
+        tasks_to_remove = sorted((input()).split(' '))
+        # this is an array with sorted nums of the tasks to remove
+
+        with open('futureTasksFile.txt', 'r', encoding='utf-8') as file:
+            lines = file.readlines()
+
+        i = 1
+        while tasks_to_remove:
+            del lines[int(tasks_to_remove[0]) - i]
+            tasks_to_remove.pop(0)
+            i += 1
+
+        with open('futureTasksFile.txt', 'w', encoding='utf-8') as file:
+            for line in lines:
+                file.write(line)
+
+        print(' * Your future tasks have been removed successfully * ')
+
+
+    elif option == 3:
         print(' * Which event do you want to remove? * ')
         event_to_remove = int(input())
 
@@ -137,7 +194,7 @@ def remove_info(option):
 
         print(' * Your event has been removed successfully * ')
 
-    elif option == 3:
+    elif option == 4:
         print(' * Which event do you want to remove? * ')
         print(' * Format: day-hour-name * ')
         event_to_remove = input()
@@ -155,7 +212,36 @@ def remove_info(option):
     show_options(option)
 
 
-def show_timetable(notUsed):
+def future_to_daily():
+    
+    print()
+    print(' * Which future tasks do you want to move to daily tasks file? * ')
+    # user should only write nums of the tasks they want to remove
+    tasks_to_move = sorted((input()).split(' '))
+    # this is an array with sorted nums of the tasks to remove
+
+    with open('futureTasksFile.txt', 'r', encoding='utf-8') as file:
+        lines = file.readlines()
+
+    i = 1
+    while tasks_to_move:
+
+        with open('tasksFile.txt', 'a') as file:
+            file.write(lines[int(tasks_to_move[0]) - i])
+        
+        del lines[int(tasks_to_move[0]) - i]
+        tasks_to_move.pop(0)
+        i += 1
+
+    with open('futureTasksFile.txt', 'w', encoding='utf-8') as file:
+        for line in lines:
+            file.write(line)
+
+    print(' * Your future tasks have been moved successfully * ')
+    show_options(2)
+
+
+def show_timetable():
 
     print()
     print(' -- Here is the timetable for this week -- ')
@@ -174,7 +260,7 @@ def show_timetable(notUsed):
     go_back(2)
 
 
-def edit_timetable(notUsed):
+def edit_timetable():
 
     print()
     print(' -- Do you want to add or remove the event in the timetable? -- ')
@@ -182,10 +268,10 @@ def edit_timetable(notUsed):
     choice = int(input())
 
     if choice == 1:
-        add_info(3)
+        add_info(4)
 
     elif choice == 2:
-        remove_info(3)
+        remove_info(4)
 
     elif choice == 3:
         show_options(2)
@@ -224,21 +310,23 @@ def pretty_printing(letter, line):
             CALENDAR[day].append(TIMETABLE)
 
 
-SWITCH = {
+""" basic modules used in the code """
+SWITCH = \
+{
     1: see_info,
     2: add_info,
-    3: remove_info,
-    4: show_timetable,
-    5: edit_timetable
+    3: remove_info
 }
 
 EVENTS = []
-CALENDAR = {
-        'Monday': [''],
-        'Tuesday': [''],
-        'Wednesday': [''],
-        'Thursday': [''],
-        'Friday': ['']
-    }
+
+CALENDAR = \
+{
+    'Monday': [''],
+    'Tuesday': [''],
+    'Wednesday': [''],
+    'Thursday': [''],
+    'Friday': ['']
+}
 
 main_options()
