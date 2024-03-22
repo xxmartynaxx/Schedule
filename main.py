@@ -79,22 +79,31 @@ def see_info(option):
     print()
     if option == 1:
         print(f' -- Here is your to-do list for {(datetime.now().date()).strftime('%d.%m.%y')} -- ')
-        with open('tasksFile.txt', 'r', encoding='utf-8') as file:
-            for i, line in enumerate(file, start=1):
-                print(f'{i}. {line.strip()}')
+        try:
+            with open('tasksFile.txt', 'r', encoding='utf-8') as file:
+                for i, line in enumerate(file, start=1):
+                    print(f'{i}. {line.strip()}')
+        except FileNotFoundError:
+            print('Your to-do list is empty. To see the to-do list add the first task.')
 
     elif option == 2:
         print(f' -- Here is the list of your future tasks -- ')
-        with open('futureTasksFile.txt', 'r', encoding='utf-8') as file:
-            for i, line in enumerate(file, start=1):
-                print(f'{i}. {line.strip()}')
+        try:
+            with open('futureTasksFile.txt', 'r', encoding='utf-8') as file:
+                for i, line in enumerate(file, start=1):
+                    print(f'{i}. {line.strip()}')
+        except FileNotFoundError:
+            print('Your list is empty. To see the list add the first future task.')
 
     elif option == 3:
         print(' -- Here is the list of your upcoming events -- ')
-        with open('eventsFile.txt', 'r', encoding='utf-8') as file:
-            for line in file:
-                pretty_printing('e', line.split('-'))
-        pprint.pprint(sorted(EVENTS, key=itemgetter('date'), reverse=False), width=30, depth=None)
+        try:
+            with open('eventsFile.txt', 'r', encoding='utf-8') as file:
+                for line in file:
+                    pretty_printing('e', line.split('-'))
+            pprint.pprint(sorted(EVENTS, key=itemgetter('date'), reverse=False), width=30, depth=None)
+        except FileNotFoundError:
+            print('Your list of upcoming events is empty. To see the list add the first event.')
 
     go_back(option)
 
@@ -245,9 +254,12 @@ def show_timetable():
 
     print()
     print(' -- Here is the timetable for this week -- ')
-    with open('calendarFile.txt', 'r', encoding='utf-8') as file:
-        for line in file:
-            pretty_printing('t', line.split('-'))
+    try:
+        with open('calendarFile.txt', 'r', encoding='utf-8') as file:
+            for line in file:
+                pretty_printing('t', line.split('-'))
+    except FileNotFoundError:
+        print('Your timetable is empty. To see the timetable add the first event.')
 
     for day, events in CALENDAR.items():
         CALENDAR[day] = sorted(events, key=lambda hour: list(hour))
@@ -310,7 +322,7 @@ def pretty_printing(letter, line):
             CALENDAR[day].append(TIMETABLE)
 
 
-""" basic modules used in the code """
+""" modules common for every main option  """
 SWITCH = \
 {
     1: see_info,
